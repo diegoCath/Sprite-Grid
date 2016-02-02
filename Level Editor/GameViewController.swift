@@ -6,6 +6,8 @@
 //  Copyright (c) 2015 Diego Cathalifaud. All rights reserved.
 //
 
+// @TODO: use 3 collection views for items menu
+
 import UIKit
 import SpriteKit
 
@@ -31,15 +33,11 @@ class GameViewController: UIViewController {
     }
 
     override func shouldAutorotate() -> Bool {
-        return true
+        return false
     }
 
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        if UIDevice.currentDevice().userInterfaceIdiom == .Phone {
-            return .AllButUpsideDown
-        } else {
-            return .All
-        }
+        return .Portrait
     }
 
     override func didReceiveMemoryWarning() {
@@ -49,5 +47,38 @@ class GameViewController: UIViewController {
 
     override func prefersStatusBarHidden() -> Bool {
         return true
+    }
+    
+    @IBAction func itemButtonClicked(sender: AnyObject) {
+        let button = sender as! UIButton
+        
+        NSLog("tag: \(button.tag)")
+    }
+    
+    func fileNameForItemTag(tag: Int) -> String? {
+        switch tag {
+        
+        case 101:
+            return "TileSnow"
+        case 102:
+            return "TileTempleBlue"
+        case 103:
+            return "TileTempleRed"
+        case 102:
+            return "TileTempleGreen"
+        
+        case 201:
+            return "TileSnow"
+        case 202:
+            return "TileSnow"
+        
+        case 301:
+            return "TileSnow"
+        case 302:
+            return "TileSnow"
+        
+        default:
+            return nil
+        }
     }
 }

@@ -9,33 +9,64 @@
 import SpriteKit
 
 class GameScene: SKScene {
+    
+    var tiles = [[SKNode]]()
+    
+    let tileSize:Double = 90.0
+    let x_0 = 69.0;
+    let y_0 = 380.0;
+    
     override func didMoveToView(view: SKView) {
         /* Setup your scene here */
-        let myLabel = SKLabelNode(fontNamed:"Chalkduster")
-        myLabel.text = "Hello, World!"
-        myLabel.fontSize = 45
-        myLabel.position = CGPoint(x:CGRectGetMidX(self.frame), y:CGRectGetMidY(self.frame))
         
-        self.addChild(myLabel)
+        NSLog("scene size: [\(self.frame.width), \(self.frame.height)]")
+        NSLog("scene position: [\(self.frame.origin.x), \(self.frame.origin.y)]")
+        
+        for var i = 0; i < 7; i++ {
+            
+            var row = [SKNode]()
+            
+            for var j = 0; j < 7; j++ {
+                
+                var imgName = "TileTempleGreen1"
+                
+                if i % 2 == j % 2 {
+                    imgName = "TileTempleRed1"
+                }
+         
+                let tile = SKSpriteNode(imageNamed: imgName)
+                tile.position = CGPoint(x: x_0 + (Double(j) + 0.5) * self.tileSize, y: y_0 + (Double(i) + 0.5) * self.tileSize)
+                self.addChild(tile)
+                
+                row.append(tile)
+            }
+            
+            self.tiles.append(row)
+        }
     }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
        /* Called when a touch begins */
         
         for touch in touches {
             let location = touch.locationInNode(self)
             
-            let sprite = SKSpriteNode(imageNamed:"Spaceship")
+            let x = Int(floor((Double(location.x) - x_0) / tileSize))
+            let y = Int(floor((Double(location.y) - y_0) / tileSize))
             
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-            sprite.position = location
+            if x < 0 || x >= 7 || y < 0 || y >= 7 {
+                return;
+            }
             
-            let action = SKAction.rotateByAngle(CGFloat(M_PI), duration:1)
+            print("\(x), \(y)")
             
-            sprite.runAction(SKAction.repeatActionForever(action))
+            var tile = tiles[Int(y)][Int(x)]
+            tile.removeFromParent();
             
-            self.addChild(sprite)
+            tile = SKSpriteNode(imageNamed: "TileSnow1")
+            tile.position = CGPoint(x: x_0 + (Double(x) + 0.5) * self.tileSize, y: y_0 + (Double(y) + 0.5) * self.tileSize)
+            self.addChild(tile)
+            tiles[Int(y)][Int(x)] = tile
         }
     }
    
