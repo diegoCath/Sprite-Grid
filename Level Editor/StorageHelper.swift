@@ -10,44 +10,44 @@ import UIKit
 
 class StorageHelper: NSObject {
     
-    class func saveDictionary(dictionary: [String: NSCoding], tag: String) {
+    class func saveDictionary(_ dictionary: [String: NSCoding], tag: String) {
         
-        self.saveObject(dictionary, tag: tag);
+        self.saveObject(dictionary as NSCoding, tag: tag);
     }
     
-    class func saveArray(array: [NSCoding], tag: String) {
+    class func saveArray(_ array: [NSCoding], tag: String) {
         
-        self.saveObject(array, tag: tag);
+        self.saveObject(array as NSCoding, tag: tag);
     }
     
-    class func loadDictionaryForTag(tag: String) -> [String: AnyObject] {
+    class func loadDictionaryForTag(_ tag: String) -> [String: AnyObject] {
         
         guard let level = self.loadObjectForTag(tag) as? [String: AnyObject] else { return [:] }
         return level
     }
     
-    class func loadArrayForTag(tag: String) -> [AnyObject] {
+    class func loadArrayForTag(_ tag: String) -> [AnyObject] {
         
         guard let level = self.loadObjectForTag(tag) as? [AnyObject] else { return [] }
         return level
     }
     
-    class private func saveObject(object: NSCoding, tag: String) {
+    class fileprivate func saveObject(_ object: NSCoding, tag: String) {
         
-        let data = NSKeyedArchiver.archivedDataWithRootObject(object)
-        let filename = getDocumentsDirectory().stringByAppendingString(("/\(tag).txt"))
-        data.writeToFile(filename, atomically: true)
+        let data = NSKeyedArchiver.archivedData(withRootObject: object)
+        let filename = getDocumentsDirectory() + ("/\(tag).txt")
+        try? data.write(to: URL(fileURLWithPath: filename), options: [.atomic])
     }
     
-    class private func loadObjectForTag(tag: String) -> Any? {
+    class fileprivate func loadObjectForTag(_ tag: String) -> Any? {
         
-        let filename = getDocumentsDirectory().stringByAppendingString(("/\(tag).txt"))
-        let level = NSKeyedUnarchiver.unarchiveObjectWithFile(filename)
+        let filename = getDocumentsDirectory() + ("/\(tag).txt")
+        let level = NSKeyedUnarchiver.unarchiveObject(withFile: filename)
         return level
     }
     
-    private class func getDocumentsDirectory() -> String {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
+    fileprivate class func getDocumentsDirectory() -> String {
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let documentsDirectory = paths[0]
         return documentsDirectory
     }

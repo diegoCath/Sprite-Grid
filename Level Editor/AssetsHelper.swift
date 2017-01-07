@@ -16,19 +16,19 @@ class AssetsHelper: NSObject {
     
     override init() {
         
-        if let path = NSBundle.mainBundle().pathForResource("ElementsProperties", ofType: "plist") {
+        if let path = Bundle.main.path(forResource: "ElementsProperties", ofType: "plist") {
             elementsPropertiesByLayer = NSArray(contentsOfFile: path)
         }
     }
     
-    func layerArrayForDepth(depth: Int) -> [[String : String]]? {
+    func layerArrayForDepth(_ depth: Int) -> [[String : String]]? {
         if let array = self.elementsPropertiesByLayer {
             return array[depth] as? Array<[String : String]>
         }
         return nil
     }
     
-    func elementAt(index index: Int, layerDepth: Int) -> [String : String]? {
+    func elementAt(index: Int, layerDepth: Int) -> [String : String]? {
         if let layerArray = self.layerArrayForDepth(layerDepth) {
             return layerArray[index]
         }

@@ -37,29 +37,29 @@ class GridElement: NSObject, NSCoding {
     
     required convenience init?(coder aDecoder: NSCoder) {
         
-        let index = aDecoder.decodeIntForKey(K.CodingKeys.kGridElementIndex)
-        let depth = aDecoder.decodeIntForKey(K.CodingKeys.kGridElementDepth)
-        let x = aDecoder.decodeIntForKey(K.CodingKeys.kGridElementX)
-        let y = aDecoder.decodeIntForKey(K.CodingKeys.kGridElementY)
+        let index = aDecoder.decodeCInt(forKey: K.CodingKeys.kGridElementIndex)
+        let depth = aDecoder.decodeCInt(forKey: K.CodingKeys.kGridElementDepth)
+        let x = aDecoder.decodeCInt(forKey: K.CodingKeys.kGridElementX)
+        let y = aDecoder.decodeCInt(forKey: K.CodingKeys.kGridElementY)
         
         self.init(elementIndex: Int(index), layerDepth: Int(depth))
         (self.x, self.y) = (Int(x), Int(y))
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeInt(Int32(self.elementIndex), forKey: K.CodingKeys.kGridElementIndex)
-        aCoder.encodeInt(Int32(self.layerDepth), forKey: K.CodingKeys.kGridElementDepth)
-        aCoder.encodeInt(Int32(self.x), forKey: K.CodingKeys.kGridElementX)
-        aCoder.encodeInt(Int32(self.y), forKey: K.CodingKeys.kGridElementY)
+    func encode(with aCoder: NSCoder) {
+        aCoder.encodeCInt(Int32(self.elementIndex), forKey: K.CodingKeys.kGridElementIndex)
+        aCoder.encodeCInt(Int32(self.layerDepth), forKey: K.CodingKeys.kGridElementDepth)
+        aCoder.encodeCInt(Int32(self.x), forKey: K.CodingKeys.kGridElementX)
+        aCoder.encodeCInt(Int32(self.y), forKey: K.CodingKeys.kGridElementY)
     }
     
-    override func isEqual(object: AnyObject?) -> Bool {
+    override func isEqual(_ object: Any?) -> Bool {
         
         if let e = object {
-            return (self.elementIndex == e.elementIndex &&
-                    self.layerDepth == e.layerDepth &&
-                    self.x == e.x &&
-                    self.y == e.y)
+            return (self.elementIndex == (e as AnyObject).elementIndex &&
+                    self.layerDepth == (e as AnyObject).layerDepth &&
+                    self.x == (e as AnyObject).x &&
+                    self.y == (e as AnyObject).y)
         }
         
         return false

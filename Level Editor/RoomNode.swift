@@ -17,7 +17,7 @@ class RoomNode: SKNode {
     
     let lock = NSLock()
     
-    var tileSize = 45.0
+    static var tileSize: Double!
     
     override init() {
         super.init()
@@ -31,24 +31,30 @@ class RoomNode: SKNode {
     
     func setupGridNode() {
         
-        self.gridNode.zPosition = 100;
+        self.gridNode.zPosition = 100
         
-        for i in 0...6 {
-            
-            let hLine = SKShapeNode();
-            let hPath = CGPathCreateMutable();
-            CGPathMoveToPoint(hPath, nil, 0.0, CGFloat(i) *  45.0);
-            CGPathAddLineToPoint(hPath, nil, 315.0, CGFloat(i) *  45.0);
-            hLine.path = hPath;
-            hLine.strokeColor = UIColor.grayColor().colorWithAlphaComponent(0.5);
+        let xMax = RoomNode.tileSize * Double(K.Parameters.kNumTilesX)
+        let yMax = RoomNode.tileSize * Double(K.Parameters.kNumTilesY)
+        
+        for i in 0...K.Parameters.kNumTilesY {
+            let hLine = SKShapeNode()
+            let hPath = CGMutablePath()
+            hPath.move(to: CGPoint(x: 0.0, y: Double(i) *  RoomNode.tileSize))
+            hPath.addLine(to: CGPoint(x: xMax, y: Double(i) *  RoomNode.tileSize))
+            hLine.path = hPath
+            hLine.strokeColor = UIColor.white.withAlphaComponent(0.2)
+            hLine.lineWidth = 1
             self.gridNode.addChild(hLine)
-            
-            let vLine = SKShapeNode();
-            let vPath = CGPathCreateMutable();
-            CGPathMoveToPoint(vPath, nil, CGFloat(i) *  45.0, 0.0);
-            CGPathAddLineToPoint(vPath, nil, CGFloat(i) *  45.0, 315.0);
-            vLine.path = vPath;
-            vLine.strokeColor = UIColor.grayColor().colorWithAlphaComponent(0.5);
+        }
+        
+        for i in 0...K.Parameters.kNumTilesX {
+            let vLine = SKShapeNode()
+            let vPath = CGMutablePath()
+            vPath.move(to: CGPoint(x: Double(i) *  RoomNode.tileSize, y: 0.0))
+            vPath.addLine(to: CGPoint(x: Double(i) *  RoomNode.tileSize, y: yMax))
+            vLine.path = vPath
+            vLine.strokeColor = UIColor.white.withAlphaComponent(0.2)
+            vLine.lineWidth = 1
             self.gridNode.addChild(vLine)
         }
     }
@@ -59,14 +65,14 @@ class RoomNode: SKNode {
         self.removeAllChildren()
         self.allElements = [GridElement]()
         
-        let tiles = Array(count:K.Parameters.kNumTiles, repeatedValue:[GridElement?](count:K.Parameters.kNumTiles, repeatedValue: nil))
-        let items = Array(count:K.Parameters.kNumTiles, repeatedValue:[GridElement?](count:K.Parameters.kNumTiles, repeatedValue: nil))
-        let objects = Array(count:K.Parameters.kNumTiles, repeatedValue:[GridElement?](count:K.Parameters.kNumTiles, repeatedValue: nil))
+        let tiles = Array(repeating: [GridElement?](repeating: nil, count: K.Parameters.kNumTilesX), count: K.Parameters.kNumTilesY)
+        let items = Array(repeating: [GridElement?](repeating: nil, count: K.Parameters.kNumTilesX), count: K.Parameters.kNumTilesY)
+        let objects = Array(repeating: [GridElement?](repeating: nil, count: K.Parameters.kNumTilesX), count: K.Parameters.kNumTilesY)
         self.grid = [tiles, items, objects]
-        self.addChild(gridNode)
+        self.addChild(self.gridNode)
     }
     
-    func loadElements(elements: [GridElement]) {
+    func loadElements(_ elements: [GridElement]) {
         
         for element in elements {
             self.addElement(element, x: element.x, y: element.y)
@@ -75,11 +81,11 @@ class RoomNode: SKNode {
     
     func loadEmpty() {
         
-        for var i = 0; i < K.Parameters.kNumTiles; i++ {
+        for i in 0 ..< K.Parameters.kNumTilesY {
             
             var row = [GridElement?]()
             
-            for var j = 0; j < K.Parameters.kNumTiles; j++ {
+            for j in 0 ..< K.Parameters.kNumTilesX {
                 
                 let tileIndex = 0
                 
@@ -87,8 +93,8 @@ class RoomNode: SKNode {
                 (element.x, element.y) = (j, i)
                 if let sprite = element.sprite {
                     
-                    sprite.setScale(CGFloat(self.tileSize/90.0))
-                    sprite.position = CGPoint(x: (Double(j) + 0.5) * self.tileSize, y: (Double(i) + 0.5) * self.tileSize)
+                    sprite.setScale(CGFloat(RoomNode.tileSize/90.0))
+                    sprite.position = CGPoint(x: (Double(j) + 0.5) * RoomNode.tileSize, y: (Double(i) + 0.5) * RoomNode.tileSize)
                     self.addChild(sprite)
                 }
                 
@@ -100,12 +106,12 @@ class RoomNode: SKNode {
         }
     }
     
-    func addElement(element: GridElement, x: Int, y: Int) {
+    func addElement(_ element: GridElement, x: Int, y: Int) {
         
         if let sprite = element.sprite {
             
-            sprite.setScale(CGFloat(self.tileSize/90.0))
-            sprite.position = CGPoint(x: (Double(x) + 0.5) * self.tileSize, y: (Double(y) + 0.5) * self.tileSize)
+            sprite.setScale(CGFloat(RoomNode.tileSize/90.0))
+            sprite.position = CGPoint(x: (Double(x) + 0.5) * RoomNode.tileSize, y: (Double(y) + 0.5) * RoomNode.tileSize)
             self.addChild(sprite)
             
             let depth = element.layerDepth
@@ -114,13 +120,13 @@ class RoomNode: SKNode {
                 
                 // remove sprite from scene
                 if let spriteToDelete = elementToDelete.sprite {
-                    spriteToDelete.removeFromParent();
+                    spriteToDelete.removeFromParent()
                 }
                 
                 // remove element from allElements
                 for i in 0...self.allElements.count - 1 {
                     if self.allElements[i].isEqual(elementToDelete) {
-                        self.allElements.removeAtIndex(i)
+                        self.allElements.remove(at: i)
                         break
                     }
                 }
@@ -131,19 +137,19 @@ class RoomNode: SKNode {
         }
     }
     
-    func deleteTopElementAt(x x: Int, y: Int) {
+    func deleteTopElementAt(x: Int, y: Int) {
         
         if let elementToDelete = self.topElementAt(x: x, y: y) {
             
             // remove sprite from scene
             if let spriteToDelete = elementToDelete.sprite {
-                spriteToDelete.removeFromParent();
+                spriteToDelete.removeFromParent()
             }
             
             // remove element from allElements
             for i in 0...self.allElements.count - 1 {
                 if self.allElements[i].isEqual(elementToDelete) {
-                    self.allElements.removeAtIndex(i)
+                    self.allElements.remove(at: i)
                     break
                 }
             }
@@ -153,19 +159,19 @@ class RoomNode: SKNode {
         }
     }
     
-    func deleteElementAt(x x: Int, y: Int, depth: Int) {
+    func deleteElementAt(x: Int, y: Int, depth: Int) {
         
         if let elementToDelete = self.grid[depth][y][x] {
             
             // remove sprite from scene
             if let spriteToDelete = elementToDelete.sprite {
-                spriteToDelete.removeFromParent();
+                spriteToDelete.removeFromParent()
             }
             
             // remove element from allElements
             for i in 0...self.allElements.count - 1 {
                 if self.allElements[i].isEqual(elementToDelete) {
-                    self.allElements.removeAtIndex(i)
+                    self.allElements.remove(at: i)
                     break
                 }
             }
@@ -175,7 +181,7 @@ class RoomNode: SKNode {
         }
     }
     
-    func topElementAt(x x: Int, y: Int) -> GridElement? {
+    func topElementAt(x: Int, y: Int) -> GridElement? {
         
         var elementToDelete: GridElement?
         

@@ -38,14 +38,14 @@ class GameViewController: UIViewController {
     
     var levelX = 0, levelY = 0
     
-    private let reuseIdentifier = "TileCell"
+    fileprivate let reuseIdentifier = "TileCell"
     
     var gameScene: GameScene!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "saveGame", name: K.Notifications.kNotifBackground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.saveGame), name: NSNotification.Name(rawValue: K.Notifications.kNotifBackground), object: nil)
         
         let skView = self.view as! SKView
         skView.showsFPS = true
@@ -55,15 +55,31 @@ class GameViewController: UIViewController {
         skView.ignoresSiblingOrder = true
         
         /* Set the scale mode to scale to fit the window */
-        gameScene = GameScene(size: skView.bounds.size)
-        gameScene.scaleMode = .AspectFill
+        
+        let coordinatesLabelMaxY: Int
+        let actionButtonsMinY: Int
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            coordinatesLabelMaxY = 30
+            actionButtonsMinY = Int(skView.bounds.size.height) - 300 - 42
+        } else {
+            coordinatesLabelMaxY = 30
+            actionButtonsMinY = Int(skView.bounds.size.height) - 180 - 32
+        }
+        
+        
+        let width = Int(skView.bounds.size.width)
+        let height = actionButtonsMinY - coordinatesLabelMaxY
+        
+        gameScene = GameScene(screenSize: skView.frame.size, usableFrame: CGRect(x: 0, y: coordinatesLabelMaxY, width: width, height: height))
+        gameScene.scaleMode = .resizeFill
         gameScene.scrollDelegate = self
         
         if let elements = StorageHelper.loadArrayForTag("level 0_0") as? [GridElement] {
             gameScene.loadLevel(elements, direction: nil)
         }
         
-        let directions = [(-1, 0, Direction.Left), (1, 0, Direction.Right), (0, 1, Direction.Up), (0, -1, Direction.Down)]
+        let directions = [(-1, 0, Direction.left), (1, 0, Direction.right), (0, 1, Direction.up), (0, -1, Direction.down)]
         
         for direction in directions {
             if let elements = StorageHelper.loadArrayForTag("level \(direction.0)_\(direction.1)") as? [GridElement] {
@@ -76,12 +92,12 @@ class GameViewController: UIViewController {
         skView.presentScene(gameScene)
     }
 
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return false
     }
 
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return .Portrait
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        return .portrait
     }
 
     override func didReceiveMemoryWarning() {
@@ -89,7 +105,7 @@ class GameViewController: UIViewController {
         // Release any cached data, images, etc that aren't in use.
     }
 
-    override func prefersStatusBarHidden() -> Bool {
+    override var prefersStatusBarHidden : Bool {
         return true
     }
     
@@ -99,24 +115,24 @@ class GameViewController: UIViewController {
         }
     }
     
-    @IBAction func moveButtonTapped(sender: AnyObject) {
+    @IBAction func moveButtonTapped(_ sender: AnyObject) {
         
         self.deselectSelectedElement()
         sender.layer.borderWidth = 2.0
-        sender.layer.borderColor = UIColor.orangeColor().CGColor
-        self.deleteButton.layer.borderColor = UIColor.clearColor().CGColor
+        sender.layer.borderColor = UIColor.orange.cgColor
+        self.deleteButton.layer.borderColor = UIColor.clear.cgColor
         
-        self.gameScene.userAction = .Moving
+        self.gameScene.userAction = .moving
     }
     
-    @IBAction func deleteButtonTapped(sender: AnyObject) {
+    @IBAction func deleteButtonTapped(_ sender: AnyObject) {
         
         self.deselectSelectedElement()
         sender.layer.borderWidth = 2.0
-        sender.layer.borderColor = UIColor.orangeColor().CGColor
-        self.moveButton.layer.borderColor = UIColor.clearColor().CGColor
+        sender.layer.borderColor = UIColor.orange.cgColor
+        self.moveButton.layer.borderColor = UIColor.clear.cgColor
         
-        self.gameScene.userAction = .Deleting
+        self.gameScene.userAction = .deleting
     }
     
     func deselectSelectedElement() {
@@ -138,14 +154,14 @@ class GameViewController: UIViewController {
             self.gameScene.selectedElementIndex = nil
             self.gameScene.selectedElementLayer = nil
             
-            prevSelectedCollectionView.reloadItemsAtIndexPaths([NSIndexPath(forRow: prevIndex, inSection: 0)])
+            prevSelectedCollectionView?.reloadItems(at: [IndexPath(row: prevIndex, section: 0)])
         }
     }
 }
 
 extension GameViewController: UICollectionViewDataSource {
     
-    func collectionView(collectionView: UICollectionView,
+    func collectionView(_ collectionView: UICollectionView,
         numberOfItemsInSection section: Int) -> Int {
         
             if let layerArray = AssetsHelper.sharedInstance.layerArrayForDepth(collectionView.tag) {
@@ -155,17 +171,17 @@ extension GameViewController: UICollectionViewDataSource {
             return 0
     }
     
-    func collectionView(collectionView: UICollectionView,
-        cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
             
-            let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! ImageCollectionViewCell
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! ImageCollectionViewCell
             
             if collectionView.tag == self.gameScene.selectedElementLayer && indexPath.row == self.gameScene.selectedElementIndex {
                 cell.layer.borderWidth = cell.bounds.size.width/10.0
-                cell.layer.borderColor = UIColor.orangeColor().CGColor
+                cell.layer.borderColor = UIColor.orange.cgColor
             }
             else {
-                cell.layer.borderColor = UIColor.clearColor().CGColor
+                cell.layer.borderColor = UIColor.clear.cgColor
             }
             
             let elementDict = AssetsHelper.sharedInstance.elementAt(index:indexPath.row, layerDepth: collectionView.tag)
@@ -181,35 +197,30 @@ extension GameViewController: UICollectionViewDataSource {
 
 extension GameViewController : UICollectionViewDelegateFlowLayout {
 
-    func collectionView(collectionView: UICollectionView,
+    func collectionView(_ collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
-        sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
+        sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-            var tileSize = 90
-            
-            if self.view.frame.width <= 320.0 {     // iphone
-                tileSize = 45
-            }
-            
+            let tileSize = Int(self.view.frame.width)/K.Parameters.kNumTilesX
             return CGSize(width: tileSize, height: tileSize)
     }
     
-    func collectionView(collectionView: UICollectionView,
-        shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func collectionView(_ collectionView: UICollectionView,
+        shouldSelectItemAt indexPath: IndexPath) -> Bool {
         
             if collectionView.tag != self.gameScene.selectedElementLayer || indexPath.row != self.gameScene.selectedElementIndex {
                 
-                self.moveButton.layer.borderColor = UIColor.clearColor().CGColor
-                self.deleteButton.layer.borderColor = UIColor.clearColor().CGColor
+                self.moveButton.layer.borderColor = UIColor.clear.cgColor
+                self.deleteButton.layer.borderColor = UIColor.clear.cgColor
                 
                 self.deselectSelectedElement()
                 
-                self.gameScene.userAction = .Placing
+                self.gameScene.userAction = .placing
                 
                 self.gameScene.selectedElementLayer = collectionView.tag
                 self.gameScene.selectedElementIndex = indexPath.row
                 
-                collectionView.reloadItemsAtIndexPaths([indexPath])
+                collectionView.reloadItems(at: [indexPath])
             }
             
             return false
@@ -218,7 +229,7 @@ extension GameViewController : UICollectionViewDelegateFlowLayout {
 
 extension GameViewController: UIScrollViewDelegate {
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
         var constraint = self.bgLayerHorizontalConstraint
         
@@ -233,13 +244,13 @@ extension GameViewController: UIScrollViewDelegate {
             
             let delta = min(scrollView.contentOffset.x, scrollView.frame.origin.x)
             
-            constraint.constant -= delta
+            constraint?.constant -= delta
             scrollView.contentOffset = CGPoint(x: 0, y: 0)
             self.view.layoutIfNeeded()
         }
     }
     
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         
         var constraint = self.bgLayerHorizontalConstraint
         
@@ -252,49 +263,49 @@ extension GameViewController: UIScrollViewDelegate {
         
         if(scrollView.frame.origin.x > 0) {
             
-            constraint.constant = self.defaultLabelMargin
-            UIView.animateWithDuration(0.1) {
+            constraint?.constant = self.defaultLabelMargin
+            UIView.animate(withDuration: 0.1, animations: {
                 scrollView.setContentOffset(scrollView.contentOffset, animated: false)
                 self.view.layoutIfNeeded()
-            }
+            }) 
         }
     }
 }
 
 extension GameViewController: GameSceneScrollDelegate {
     
-    func gameScene(gameScene: GameScene, willScrollWithDirection direction: Direction) {
+    func gameScene(_ gameScene: GameScene, willScrollWithDirection direction: Direction) {
         
         self.saveGame()
     }
     
-    func gameScene(gameScene: GameScene, didScrollWithDirection direction: Direction) {
+    func gameScene(_ gameScene: GameScene, didScrollWithDirection direction: Direction) {
         
         switch direction {
-        case .Left:
+        case .left:
             self.levelX -= 1
-        case .Right:
+        case .right:
             self.levelX += 1
-        case .Up:
+        case .up:
             self.levelY += 1
-        case .Down:
+        case .down:
             self.levelY -= 1
         }
         
         self.coordinatesLabel.text = "(\(self.levelX), \(self.levelY))"
         
-        let omittedDirections: [Direction: Direction] = [.Left: .Right, .Right: .Left, .Up: .Down, .Down: .Up]
+        let omittedDirections: [Direction: Direction] = [.left: .right, .right: .left, .up: .down, .down: .up]
         let omittedDirection = omittedDirections[direction]!
-        let directions = [(-1, 0, Direction.Left), (1, 0, Direction.Right), (0, 1, Direction.Up), (0, -1, Direction.Down)]
+        let directions = [(-1, 0, Direction.left), (1, 0, Direction.right), (0, 1, Direction.up), (0, -1, Direction.down)]
         
-        let priority = DISPATCH_QUEUE_PRIORITY_DEFAULT
-        dispatch_async(dispatch_get_global_queue(priority, 0)) {
+        let priority = DispatchQueue.GlobalQueuePriority.default
+        DispatchQueue.global(priority: priority).async {
         
             for direction in directions {
                 if direction.2 != omittedDirection {
                     if let elements = StorageHelper.loadArrayForTag("level \(self.levelX + direction.0)_\(self.levelY + direction.1)") as? [GridElement] {
                         
-                        dispatch_async(dispatch_get_main_queue()) {
+                        DispatchQueue.main.async {
                             gameScene.loadLevel(elements, direction: direction.2)
                         }
                     }
